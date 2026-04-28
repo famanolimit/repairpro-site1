@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Smartphone, Battery, Shield, Zap, Cpu, ChevronRight, ChevronLeft, Check,
   Calendar, Clock, MapPin, Phone, Mail, User, MessageSquare, AlertTriangle,
-  Award, Wrench, ArrowRight, X, Search, Star, Inbox, Hourglass, RefreshCw, Sparkles, Ghost
+  Award, Wrench, ArrowRight, X, Search, Star, Inbox, Hourglass, RefreshCw, Sparkles, Ghost,
+  Gamepad2, Gift, KeyRound, Hash, ShoppingCart, Download, ShieldCheck
 } from 'lucide-react';
 
 /* ====================================================================
@@ -213,6 +214,7 @@ const Header = ({ onStartQuote }) => (
       <nav className="hidden md:flex items-center gap-7 font-body text-sm" style={{ color: COLORS.ink2 }}>
         <a href="#services" className="hover:opacity-70">Services</a>
         <a href="#tarifs" className="hover:opacity-70">Tarifs</a>
+        <a href="#digital" className="hover:opacity-70">Digital</a>
         <a href="#about" className="hover:opacity-70">À propos</a>
         <a href="#contact" className="hover:opacity-70">Contact</a>
       </nav>
@@ -402,7 +404,7 @@ const QuoteBuilder = ({ open, onClose }) => {
   // ===== Submit =====
   // Pour recevoir les demandes par email, créez un compte gratuit sur https://formspree.io
   // puis remplacez "VOTRE_ID_FORMSPREE" ci-dessous par l'ID que Formspree vous donnera (ex: xpzgkqer)
-  const FORMSPREE_ID = "xqewvpkb";
+  const FORMSPREE_ID = "VOTRE_ID_FORMSPREE";
 
   const handleSubmit = async () => {
     if (!contact.name || !contact.phone || !contact.date || !contact.time) return;
@@ -1049,11 +1051,357 @@ const Contact = ({ onStartQuote }) => {
 
 
 /* ====================================================================
+   PRODUITS & SERVICES DIGITAUX
+   ==================================================================== */
+
+const DIGITAL_CATEGORIES = [
+  {
+    id: "gift",
+    icon: Gift,
+    label: "Cartes cadeaux",
+    desc: "PSN, Xbox, iTunes, Google Play, Steam — codes envoyés instantanément après paiement.",
+    items: [
+      { name: "Carte PSN", values: [10, 20, 25, 50, 75, 100] },
+      { name: "Carte Xbox / Microsoft", values: [15, 25, 50, 100] },
+      { name: "Carte iTunes / Apple", values: [15, 25, 50, 100] },
+      { name: "Carte Google Play", values: [15, 25, 50, 100] },
+      { name: "Carte Steam", values: [20, 50, 100] },
+      { name: "Carte Nintendo eShop", values: [15, 25, 50] },
+    ],
+  },
+  {
+    id: "license",
+    icon: KeyRound,
+    label: "Licences logiciels",
+    desc: "Activations officielles pour Windows, Office, antivirus. Facture fournie.",
+    items: [
+      { name: "Windows 11 Pro", price: 39 },
+      { name: "Windows 11 Famille", price: 29 },
+      { name: "Office 2021 Famille & Étudiant", price: 49 },
+      { name: "Office 2021 Pro Plus", price: 79 },
+      { name: "Microsoft 365 (1 an)", price: 59 },
+      { name: "Antivirus Bitdefender (1 an)", price: 29 },
+      { name: "Antivirus Kaspersky (1 an)", price: 25 },
+      { name: "NordVPN (1 an)", price: 39 },
+    ],
+  },
+  {
+    id: "games",
+    icon: Gamepad2,
+    label: "Clés de jeux vidéo",
+    desc: "Jeux Steam, Epic Games, Origin, Ubisoft Connect. Sur commande, livraison rapide.",
+    items: [
+      { name: "Jeu Steam (sur demande)", price: "Devis" },
+      { name: "Jeu Epic Games (sur demande)", price: "Devis" },
+      { name: "Jeu Ubisoft Connect (sur demande)", price: "Devis" },
+      { name: "EA Play (1 an)", price: 35 },
+      { name: "Game Pass Ultimate (3 mois)", price: 39 },
+    ],
+  },
+  {
+    id: "imei",
+    icon: Hash,
+    label: "Services IMEI",
+    desc: "Déblocage opérateur et vérification de statut. Sur présentation de justificatifs.",
+    items: [
+      { name: "Vérification statut IMEI (volé/iCloud/garantie)", price: 5 },
+      { name: "Déblocage opérateur Orange / Sosh", price: 25 },
+      { name: "Déblocage opérateur SFR / RED", price: 25 },
+      { name: "Déblocage opérateur Bouygues", price: 25 },
+      { name: "Déblocage opérateur Free", price: 30 },
+      { name: "Déblocage opérateur étranger", price: "Devis" },
+    ],
+  },
+];
+
+const DigitalServices = ({ onOrder }) => {
+  const [activeCat, setActiveCat] = useState("gift");
+  const cat = DIGITAL_CATEGORIES.find(c => c.id === activeCat);
+
+  return (
+    <section id="digital" className="py-20 md:py-28" style={{ background: COLORS.cream, borderTop: `1px solid ${COLORS.line}` }}>
+      <div className="max-w-7xl mx-auto px-6">
+        <SectionLabel num="04">Produits & services digitaux</SectionLabel>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <h2 className="font-display font-bold tracking-tight max-w-3xl" style={{ color: COLORS.ink, fontSize: "clamp(32px, 4.5vw, 56px)", lineHeight: 1.05 }}>
+            Plus que de la <span className="italic font-light" style={{ color: COLORS.brand }}>réparation.</span>
+          </h2>
+          <p className="font-body max-w-md" style={{ color: COLORS.ink2 }}>
+            Cartes cadeaux, licences logiciels, codes de jeux et services IMEI — disponibles en boutique et sur commande à distance.
+          </p>
+        </div>
+
+        {/* Tabs by category */}
+        <div className="flex gap-2 mb-7 overflow-x-auto pb-2 -mx-6 px-6">
+          {DIGITAL_CATEGORIES.map(c => (
+            <button key={c.id} onClick={() => setActiveCat(c.id)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-body text-sm whitespace-nowrap transition-all" style={{ background: activeCat === c.id ? COLORS.ink : "#fff", color: activeCat === c.id ? "#fff" : COLORS.ink, border: `1px solid ${activeCat === c.id ? COLORS.ink : COLORS.line}` }}>
+              <c.icon size={16} strokeWidth={2.2}/>
+              <span className="font-medium">{c.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Category description */}
+        <div className="mb-6 flex items-start gap-4 p-5 rounded-xl" style={{ background: "#fff", border: `1px solid ${COLORS.line}` }}>
+          <div className="w-11 h-11 flex-shrink-0 rounded-lg flex items-center justify-center" style={{ background: COLORS.ink, color: "#fff" }}>
+            <cat.icon size={20} strokeWidth={2}/>
+          </div>
+          <div>
+            <h3 className="font-display font-bold text-xl mb-1" style={{ color: COLORS.ink }}>{cat.label}</h3>
+            <p className="font-body text-sm leading-relaxed" style={{ color: COLORS.ink2 }}>{cat.desc}</p>
+          </div>
+        </div>
+
+        {/* Items grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {cat.items.map((item, i) => (
+            <div key={i} className="rounded-xl p-5 transition-all duration-200 hover-lift card-shadow" style={{ background: "#fff", border: `1px solid ${COLORS.line}` }}>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="font-display font-semibold text-base leading-snug" style={{ color: COLORS.ink }}>{item.name}</div>
+                {!item.values && (
+                  <div className="font-display font-bold text-xl flex-shrink-0" style={{ color: COLORS.brand }}>
+                    {typeof item.price === "number" ? `${item.price} €` : item.price}
+                  </div>
+                )}
+              </div>
+              {item.values ? (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {item.values.map(v => (
+                    <button key={v} onClick={() => onOrder({ category: cat.label, product: item.name, amount: `${v} €` })} className="px-3 py-1.5 rounded-md font-body text-xs font-semibold transition-colors" style={{ background: COLORS.cream, color: COLORS.ink, border: `1px solid ${COLORS.line2}` }} onMouseEnter={e => { e.currentTarget.style.background = COLORS.brand; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = COLORS.brand; }} onMouseLeave={e => { e.currentTarget.style.background = COLORS.cream; e.currentTarget.style.color = COLORS.ink; e.currentTarget.style.borderColor = COLORS.line2; }}>
+                      {v} €
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <button onClick={() => onOrder({ category: cat.label, product: item.name, amount: typeof item.price === "number" ? `${item.price} €` : "Sur devis" })} className="w-full mt-1 px-4 py-2.5 rounded-lg font-body text-sm font-medium transition-colors flex items-center justify-center gap-2" style={{ background: COLORS.ink, color: "#fff" }}>
+                  <ShoppingCart size={14}/> Commander
+                </button>
+              )}
+              {item.values && (
+                <button onClick={() => onOrder({ category: cat.label, product: item.name, amount: "À choisir" })} className="w-full px-4 py-2 rounded-lg font-body text-xs font-medium transition-colors flex items-center justify-center gap-2" style={{ background: COLORS.ink, color: "#fff" }}>
+                  <ShoppingCart size={13}/> Commander
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Trust strip */}
+        <div className="mt-10 grid sm:grid-cols-3 gap-3">
+          <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "#fff", border: `1px solid ${COLORS.line}` }}>
+            <Download size={20} style={{ color: COLORS.brand }} strokeWidth={2}/>
+            <div>
+              <div className="font-body font-semibold text-sm" style={{ color: COLORS.ink }}>Livraison instantanée</div>
+              <div className="font-body text-xs" style={{ color: COLORS.muted }}>Code envoyé par email sous 1h</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "#fff", border: `1px solid ${COLORS.line}` }}>
+            <ShieldCheck size={20} style={{ color: COLORS.brand }} strokeWidth={2}/>
+            <div>
+              <div className="font-body font-semibold text-sm" style={{ color: COLORS.ink }}>Codes officiels garantis</div>
+              <div className="font-body text-xs" style={{ color: COLORS.muted }}>Distributeurs agréés uniquement</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: "#fff", border: `1px solid ${COLORS.line}` }}>
+            <Award size={20} style={{ color: COLORS.brand }} strokeWidth={2}/>
+            <div>
+              <div className="font-body font-semibold text-sm" style={{ color: COLORS.ink }}>Facture fournie</div>
+              <div className="font-body text-xs" style={{ color: COLORS.muted }}>Pour tout achat de licence</div>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-6 font-body text-xs" style={{ color: COLORS.muted }}>
+          ⚠️ Pour les services IMEI, une preuve de propriété (facture d'achat) peut être demandée.
+        </p>
+      </div>
+    </section>
+  );
+};
+
+/* ====================================================================
+   FORMULAIRE DE COMMANDE DIGITALE
+   ==================================================================== */
+
+const DigitalOrderModal = ({ open, onClose, prefill }) => {
+  const [contact, setContact] = useState({ name: "", email: "", phone: "", note: "" });
+  const [submitted, setSubmitted] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  // Reuse Formspree config from QuoteBuilder
+  const FORMSPREE_ID = "VOTRE_ID_FORMSPREE";
+
+  useEffect(() => {
+    if (!open) {
+      setContact({ name: "", email: "", phone: "", note: "" });
+      setSubmitted(null);
+    }
+  }, [open]);
+
+  const handleSubmit = async () => {
+    if (!contact.name || !contact.email || !contact.phone) return;
+    setSaving(true);
+    const order = {
+      id: `OR-${Date.now().toString(36).toUpperCase()}`,
+      createdAt: new Date().toISOString(),
+      ...prefill,
+      contact,
+    };
+    try {
+      if (FORMSPREE_ID && FORMSPREE_ID !== "VOTRE_ID_FORMSPREE") {
+        await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            _subject: `Nouvelle commande digitale — ${order.contact.name} (${order.product})`,
+            reference: order.id,
+            date_creation: new Date(order.createdAt).toLocaleString("fr-FR"),
+            type_demande: "Commande produit digital",
+            categorie: order.category,
+            produit: order.product,
+            montant: order.amount,
+            nom: order.contact.name,
+            email: order.contact.email,
+            telephone: order.contact.phone,
+            note: order.contact.note || "—",
+          }),
+        });
+      } else {
+        console.warn("⚠️ Formspree non configuré pour les commandes digitales");
+      }
+    } catch (e) {
+      console.error("Erreur d'envoi:", e);
+    }
+    setSaving(false);
+    setSubmitted(order);
+  };
+
+  if (!open) return null;
+
+  const canSubmit = contact.name && contact.email && contact.phone;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center" style={{ background: "rgba(22,20,18,0.6)" }}>
+      <div className="absolute inset-0" onClick={onClose} />
+      <div className="relative w-full md:max-w-xl h-full md:h-auto overflow-y-auto md:rounded-2xl card-shadow" style={{ background: COLORS.paper }}>
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-7 py-4" style={{ background: `${COLORS.paper}F2`, borderBottom: `1px solid ${COLORS.line}`, backdropFilter: "blur(8px)" }}>
+          <div className="font-body text-xs uppercase tracking-wider2" style={{ color: COLORS.muted }}>
+            {submitted ? "Commande enregistrée" : "Commander"}
+          </div>
+          <button onClick={onClose} className="p-2 rounded-md hover:bg-black/5" style={{ color: COLORS.ink }}><X size={18}/></button>
+        </div>
+
+        <div className="px-5 md:px-10 py-8 md:py-10 anim-fade-up">
+          {!submitted ? (
+            <>
+              <h3 className="font-display font-bold mb-2" style={{ color: COLORS.ink, fontSize: "clamp(26px, 3.5vw, 36px)", lineHeight: 1.1 }}>
+                Vos <span className="italic font-light" style={{ color: COLORS.brand }}>coordonnées</span>
+              </h3>
+              <p className="font-body mb-7" style={{ color: COLORS.muted }}>Pour vous envoyer le code et la facture par email.</p>
+
+              {/* Order recap */}
+              <div className="mb-7 rounded-xl p-5" style={{ background: COLORS.cream, border: `1px solid ${COLORS.line}` }}>
+                <Pill color="brand">Commande digitale</Pill>
+                <div className="mt-3 flex items-end justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-body text-xs uppercase tracking-wider1" style={{ color: COLORS.muted }}>{prefill.category}</div>
+                    <div className="font-display font-semibold text-lg leading-tight mt-1" style={{ color: COLORS.ink }}>{prefill.product}</div>
+                  </div>
+                  <div className="font-display font-bold text-2xl flex-shrink-0" style={{ color: COLORS.brand }}>
+                    {prefill.amount}
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact form */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-body text-xs uppercase tracking-wider1 mb-2 flex items-center gap-1.5" style={{ color: COLORS.muted }}>
+                    <User size={11}/> Nom complet *
+                  </label>
+                  <input value={contact.name} onChange={e => setContact({ ...contact, name: e.target.value })} placeholder="Jean Dupont" className="w-full px-4 py-2.5 rounded-lg font-body text-sm focus:outline-none" style={{ background: "#fff", border: `1px solid ${COLORS.line}`, color: COLORS.ink }}/>
+                </div>
+                <div>
+                  <label className="font-body text-xs uppercase tracking-wider1 mb-2 flex items-center gap-1.5" style={{ color: COLORS.muted }}>
+                    <Phone size={11}/> Téléphone *
+                  </label>
+                  <input value={contact.phone} onChange={e => setContact({ ...contact, phone: e.target.value })} placeholder="06 12 34 56 78" className="w-full px-4 py-2.5 rounded-lg font-body text-sm focus:outline-none" style={{ background: "#fff", border: `1px solid ${COLORS.line}`, color: COLORS.ink }}/>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="font-body text-xs uppercase tracking-wider1 mb-2 flex items-center gap-1.5" style={{ color: COLORS.muted }}>
+                    <Mail size={11}/> Email * (le code y sera envoyé)
+                  </label>
+                  <input type="email" value={contact.email} onChange={e => setContact({ ...contact, email: e.target.value })} placeholder="vous@exemple.fr" className="w-full px-4 py-2.5 rounded-lg font-body text-sm focus:outline-none" style={{ background: "#fff", border: `1px solid ${COLORS.line}`, color: COLORS.ink }}/>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="font-body text-xs uppercase tracking-wider1 mb-2 flex items-center gap-1.5" style={{ color: COLORS.muted }}>
+                    <MessageSquare size={11}/> Précisions (facultatif)
+                  </label>
+                  <textarea rows={3} value={contact.note} onChange={e => setContact({ ...contact, note: e.target.value })} placeholder="Ex. : montant exact souhaité, IMEI, version Windows..." className="w-full px-4 py-2.5 rounded-lg font-body text-sm focus:outline-none resize-none" style={{ background: "#fff", border: `1px solid ${COLORS.line}`, color: COLORS.ink }}/>
+                </div>
+              </div>
+
+              <div className="mt-5 p-4 rounded-lg flex gap-3 items-start" style={{ background: "#FEF3C7", border: `1px solid #FCD34D` }}>
+                <AlertTriangle size={16} style={{ color: "#92400E" }} className="flex-shrink-0 mt-0.5"/>
+                <div className="font-body text-xs leading-relaxed" style={{ color: "#78350F" }}>
+                  <strong>Paiement à la confirmation :</strong> nous vous recontactons sous 1h ouvrée pour validation. Le code et la facture vous seront envoyés par email après réception du paiement.
+                </div>
+              </div>
+
+              <div className="mt-8 flex items-center justify-end">
+                <Button onClick={handleSubmit} disabled={!canSubmit || saving} icon={saving ? Hourglass : Check}>
+                  {saving ? "Envoi en cours…" : "Envoyer la commande"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: COLORS.green }}>
+                <Check size={28} color="#fff" strokeWidth={2.5}/>
+              </div>
+              <h3 className="font-display font-bold text-3xl md:text-4xl mb-3" style={{ color: COLORS.ink }}>Merci {submitted.contact.name.split(" ")[0]} !</h3>
+              <p className="font-body text-base mb-8 max-w-md mx-auto" style={{ color: COLORS.ink2 }}>
+                Votre commande est bien enregistrée. Nous vous recontactons sous 1h ouvrée pour la confirmation et le paiement.
+              </p>
+              <div className="max-w-md mx-auto rounded-xl p-6 text-left" style={{ background: COLORS.cream, border: `1px solid ${COLORS.line}` }}>
+                <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
+                  <div className="font-body text-xs uppercase tracking-wider2" style={{ color: COLORS.muted }}>Référence</div>
+                  <div className="font-display font-bold" style={{ color: COLORS.ink }}>{submitted.id}</div>
+                </div>
+                <div className="space-y-2.5 font-body text-sm">
+                  <div className="flex justify-between"><span style={{ color: COLORS.muted }}>Catégorie</span><span style={{ color: COLORS.ink }} className="font-medium">{submitted.category}</span></div>
+                  <div className="flex justify-between"><span style={{ color: COLORS.muted }}>Produit</span><span style={{ color: COLORS.ink }} className="font-medium">{submitted.product}</span></div>
+                  <div className="flex justify-between pt-3 mt-3" style={{ borderTop: `1px solid ${COLORS.line}` }}>
+                    <span className="font-display italic" style={{ color: COLORS.muted }}>Montant</span>
+                    <span className="font-display font-bold text-2xl" style={{ color: COLORS.brand }}>{submitted.amount}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-8 flex justify-center">
+                <Button onClick={onClose} variant="outline">Fermer</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/* ====================================================================
    APP RACINE
    ==================================================================== */
 
 export default function App() {
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [orderPrefill, setOrderPrefill] = useState(null);
+
+  const handleOrder = (data) => {
+    setOrderPrefill(data);
+    setOrderOpen(true);
+  };
 
   return (
     <div className="font-body" style={{ background: COLORS.cream, color: COLORS.ink, minHeight: "100vh" }}>
@@ -1063,9 +1411,11 @@ export default function App() {
       <Hero onStartQuote={() => setQuoteOpen(true)}/>
       <ValueSection/>
       <PricingTable/>
+      <DigitalServices onOrder={handleOrder}/>
       <FAQ/>
       <Contact onStartQuote={() => setQuoteOpen(true)}/>
       <QuoteBuilder open={quoteOpen} onClose={() => setQuoteOpen(false)}/>
+      <DigitalOrderModal open={orderOpen} onClose={() => setOrderOpen(false)} prefill={orderPrefill || {}}/>
     </div>
   );
 }
