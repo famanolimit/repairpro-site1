@@ -403,8 +403,8 @@ const QuoteBuilder = ({ open, onClose }) => {
 
   // ===== Submit =====
   // Pour recevoir les demandes par email, créez un compte gratuit sur https://formspree.io
-  // puis remplacez "VOTRE_ID_FORMSPREE" ci-dessous par l'ID que Formspree vous donnera (ex: xpzgkqer)
-  const FORMSPREE_ID = "VOTRE_ID_FORMSPREE";
+  // puis remplacez "xqewvpkb" ci-dessous par l'ID que Formspree vous donnera (ex: xpzgkqer)
+  const FORMSPREE_ID = "xqewvpkb";
 
   const handleSubmit = async () => {
     if (!contact.name || !contact.phone || !contact.date || !contact.time) return;
