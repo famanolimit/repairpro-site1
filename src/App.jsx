@@ -421,7 +421,7 @@ const QuoteBuilder = ({ open, onClose }) => {
     };
     try {
       // Envoi de la demande à Formspree, qui forwarde par email à ixititoure@gmail.com
-      if (FORMSPREE_ID && FORMSPREE_ID !== "VOTRE_ID_FORMSPREE") {
+      if (FORMSPREE_ID && FORMSPREE_ID !== "xqewvpkb") {
         await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
