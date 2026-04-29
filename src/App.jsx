@@ -109,10 +109,10 @@ const COLORS = {
 };
 
 const FONT_IMPORT = `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700;800&display=swap');
   body { background: ${COLORS.cream}; }
   .font-display { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
-  .font-body    { font-family: 'DM Sans', system-ui, sans-serif; }
+  .font-body    { font-family: 'Inter', system-ui, sans-serif; }
   .grid-bg {
     background-image:
       linear-gradient(${COLORS.line2}33 1px, transparent 1px),
@@ -210,17 +210,88 @@ const SectionLabel = ({ children, num }) => (
    HEADER
    ==================================================================== */
 
+// ====================================================================
+// LOGO FAMATECH 42 — composant réutilisable selon la charte graphique
+// ====================================================================
+const Famatech42Logo = ({ size = "md", inverse = false, showTagline = true }) => {
+  const sizes = {
+    sm: { mark: 28, num: 16, name: 16, sub: 9 },
+    md: { mark: 36, num: 20, name: 20, sub: 10 },
+    lg: { mark: 56, num: 32, name: 32, sub: 12 },
+    xl: { mark: 80, num: 46, name: 48, sub: 14 },
+  };
+  const s = sizes[size] || sizes.md;
+  const markBg = inverse ? "#FFFFFF" : COLORS.ink;
+  const numColor = inverse ? COLORS.ink : "#FFFFFF";
+  const accentColor = inverse ? COLORS.brand : "#60A5FA"; // bleu clair sur fond noir, brand sur fond blanc
+  const nameColor = inverse ? "#FFFFFF" : COLORS.ink;
+  const dotColor = COLORS.brand;
+  const subColor = inverse ? "rgba(255,255,255,0.6)" : COLORS.muted;
+
+  return (
+    <div className="flex items-center" style={{ gap: size === "sm" ? "8px" : "10px" }}>
+      <div
+        style={{
+          width: s.mark,
+          height: s.mark,
+          background: markBg,
+          borderRadius: size === "sm" ? "6px" : size === "lg" ? "10px" : "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 800,
+            fontSize: s.num,
+            color: numColor,
+            lineHeight: 1,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          4<span style={{ color: accentColor }}>2</span>
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        <div
+          style={{
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 800,
+            fontSize: s.name,
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            color: nameColor,
+          }}
+        >
+          Famatech<span style={{ color: dotColor }}>.</span>
+        </div>
+        {showTagline && (
+          <div
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: s.sub,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: subColor,
+              fontWeight: 600,
+            }}
+          >
+            Saint-Étienne
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const Header = ({ onStartQuote }) => (
   <header className="sticky top-0 z-40 backdrop-blur-md" style={{ background: `${COLORS.cream}E6`, borderBottom: `1px solid ${COLORS.line}` }}>
     <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="#top" className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: COLORS.ink }}>
-          <Wrench size={18} color="#fff" strokeWidth={2.2} />
-        </div>
-        <div>
-          <div className="font-display font-bold text-xl leading-none" style={{ color: COLORS.ink }}>RepairPro</div>
-          <div className="font-body text-2xs uppercase tracking-wider2" style={{ color: COLORS.muted }}>Atelier de réparation</div>
-        </div>
+      <a href="#top" className="flex items-center">
+        <Famatech42Logo size="md" />
       </a>
       <nav className="hidden md:flex items-center gap-7 font-body text-sm" style={{ color: COLORS.ink2 }}>
         <a href="#services" className="hover:opacity-70">Services</a>
@@ -251,12 +322,11 @@ const Hero = ({ onStartQuote }) => (
             Garantie 12 mois sur toutes les pièces
           </Pill>
           <h1 className="mt-6 font-display font-bold tracking-tight" style={{ color: COLORS.ink, fontSize: "clamp(48px, 8vw, 112px)", lineHeight: 0.95 }}>
-            Votre iPhone,<br />
-            <span className="italic font-light" style={{ color: COLORS.brand }}>comme neuf</span>
-            <span className="font-display"> en 30 minutes.</span>
+            Votre téléphone,<br />
+            <span className="italic font-light" style={{ color: COLORS.brand }}>comme neuf.</span>
           </h1>
           <p className="mt-7 font-body text-lg md:text-xl max-w-2xl leading-relaxed" style={{ color: COLORS.ink2 }}>
-            Devis instantané en ligne, prise de rendez-vous immédiate, prix transparents. Plus de surprise — vous savez ce que vous payez avant de venir.
+            Réparation iPhone et toutes marques à Saint-Étienne. Devis instantané en ligne, garantie 12 mois, prix transparents — vous savez ce que vous payez avant de venir.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Button onClick={onStartQuote} icon={ArrowRight} className="text-base">Calculer mon devis</Button>
@@ -310,15 +380,15 @@ const Hero = ({ onStartQuote }) => (
 
 const ValueSection = () => {
   const items = [
-    { icon: Hourglass, title: "30 min à 2h",    desc: "La majorité de nos réparations sont effectuées sur place le jour même." },
-    { icon: Award,     title: "Garantie 12 mois", desc: "Toutes nos pièces sont garanties un an, même après un choc accidentel." },
-    { icon: Sparkles,  title: "Pièces premium",   desc: "OLED, Soft OLED ou compatibles certifiées — vous choisissez la qualité." },
-    { icon: Star,      title: "Prix transparents", desc: "Vous obtenez le tarif définitif avant de prendre rendez-vous." },
+    { icon: ShieldCheck, title: "Confiance",  desc: "Prix transparents, garantie 12 mois, diagnostic gratuit. Pas de surprise, jamais." },
+    { icon: MessageCircle, title: "Proximité",  desc: "Saint-Étienne, ouvert 7j/7. WhatsApp, Snap — joignables comme un ami." },
+    { icon: Award,     title: "Maîtrise",   desc: "iPhone 5 au 16 Pro Max. Toutes marques. Toutes pannes. Pièces premium au choix." },
+    { icon: Hourglass,  title: "Rapidité",  desc: "30 min à 2h pour la majorité des réparations. Diagnostic immédiat sur place." },
   ];
   return (
     <section id="services" className="py-20 md:py-28" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, borderBottom: `1px solid ${COLORS.line}` }}>
       <div className="max-w-7xl mx-auto px-6">
-        <SectionLabel num="01">Pourquoi nous</SectionLabel>
+        <SectionLabel num="01">Pourquoi Famatech 42</SectionLabel>
         <h2 className="font-display font-bold tracking-tight mb-14 max-w-3xl" style={{ color: COLORS.ink, fontSize: "clamp(32px, 4.5vw, 56px)", lineHeight: 1.05 }}>
           Une promesse simple : <span className="italic font-light" style={{ color: COLORS.brand }}>vous repartez le sourire aux lèvres.</span>
         </h2>
@@ -921,7 +991,7 @@ const ContactForm = ({ quoteSummary, unavailable, contact, setContact }) => {
       </div>
 
       <style>{`
-        .bare-input { width: 100%; background: #fff; border: 1px solid ${COLORS.line}; color: ${COLORS.ink}; padding: 0.7rem 0.9rem; border-radius: 0.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; }
+        .bare-input { width: 100%; background: #fff; border: 1px solid ${COLORS.line}; color: ${COLORS.ink}; padding: 0.7rem 0.9rem; border-radius: 0.5rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
         .bare-input:focus { border-color: ${COLORS.brand}; box-shadow: 0 0 0 3px ${COLORS.brand}22; }
       `}</style>
     </div>
@@ -1104,7 +1174,7 @@ const Contact = ({ onStartQuote }) => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-body text-xs" style={{ color: "#94A3B8", borderTop: "1px solid #FFFFFF1A" }}>
-        <div>© {new Date().getFullYear()} RepairPro · Saint-Étienne. Tarifs TTC. TVA 20% incluse.</div>
+        <div>© {new Date().getFullYear()} Famatech 42 · Saint-Étienne. Tarifs TTC. TVA 20% incluse.</div>
         <div>Garantie 12 mois · Pièces certifiées · Diagnostic gratuit</div>
       </div>
     </section>
