@@ -3,8 +3,15 @@ import {
   Smartphone, Battery, Shield, Zap, Cpu, ChevronRight, ChevronLeft, Check,
   Calendar, Clock, MapPin, Phone, Mail, User, MessageSquare, AlertTriangle,
   Award, Wrench, ArrowRight, X, Search, Star, Inbox, Hourglass, RefreshCw, Sparkles, Ghost,
-  Gamepad2, Gift, KeyRound, Hash, ShoppingCart, Download, ShieldCheck
+  Gamepad2, Gift, KeyRound, Hash, ShoppingCart, Download, ShieldCheck, MessageCircle
 } from 'lucide-react';
+
+// WhatsApp brand icon (lucide-react doesn't ship a dedicated WhatsApp icon)
+const WhatsAppIcon = ({ size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.464 3.488"/>
+  </svg>
+);
 
 /* ====================================================================
    DONNÉES TARIFAIRES iPHONE — extraites du fichier Excel
@@ -127,6 +134,8 @@ const FONT_IMPORT = `
   .tracking-wider1 { letter-spacing: 0.15em; }
   .text-2xs        { font-size: 10px; line-height: 14px; }
   .max-h-92vh      { max-height: 92vh; }
+  .max-h-modal     { max-height: min(92vh, 720px); }
+  .max-h-modal-sm  { max-height: min(92vh, 620px); }
   .max-h-50vh      { max-height: 50vh; }
   .hover-lift     { transition: transform .2s ease; }
   .hover-lift:hover { transform: translateY(-1px); }
@@ -151,12 +160,14 @@ const Button = ({ children, onClick, variant = "primary", className = "", icon: 
     ghost:   `bg-transparent px-5 py-3 hover:bg-black/5`,
     outline: `bg-transparent border px-5 py-3 hover:bg-black/5`,
     dark:    `text-white px-6 py-3.5 hover:opacity-90`,
+    whatsapp: `text-white px-6 py-3.5 hover-lift active:translate-y-0`,
   };
   const styles = {
     primary: { background: COLORS.brand, color: "#fff" },
     outline: { borderColor: COLORS.line2, color: COLORS.ink },
     ghost:   { color: COLORS.ink },
     dark:    { background: COLORS.ink, color: "#fff" },
+    whatsapp: { background: "#25D366", color: "#fff", boxShadow: "0 1px 0 0 rgba(0,0,0,0.05), 0 8px 24px -12px rgba(37,211,102,0.55)" },
   };
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`} style={styles[variant]}>
@@ -402,9 +413,41 @@ const QuoteBuilder = ({ open, onClose }) => {
   }, [path, model, repair, option]);
 
   // ===== Submit =====
-  // Pour recevoir les demandes par email, créez un compte gratuit sur https://formspree.io
-  // puis remplacez "xqewvpkb" ci-dessous par l'ID que Formspree vous donnera (ex: xpzgkqer)
-  const FORMSPREE_ID = "xqewvpkb";
+  // Le bouton ouvre WhatsApp avec un message pré-rempli vers votre numéro.
+  // Formspree reste un filet de sécurité (au cas où le client ne valide pas le message WhatsApp).
+  // Modifiez le numéro WhatsApp ci-dessous si besoin (format international SANS le 0 initial)
+  const WHATSAPP_NUMBER = "33745376436"; // 07 45 37 64 36 → 33745376436
+  const FORMSPREE_ID = "VOTRE_ID_FORMSPREE";
+
+  const buildWhatsAppMessage = (booking) => {
+    const lines = [
+      `Bonjour ! 👋 Je souhaite *réserver une réparation* :`,
+      ``,
+      `📱 *Appareil* : ${booking.model}`,
+      `🔧 *Réparation* : ${booking.label || booking.repair}`,
+    ];
+    if (booking.price != null) {
+      lines.push(`💰 *Devis estimé* : ${booking.price === 0 ? "Gratuit" : booking.price + " €"}`);
+    }
+    if (booking.issueDescription) {
+      lines.push(`📝 *Description* : ${booking.issueDescription}`);
+    }
+    lines.push(``);
+    lines.push(`📅 *Date souhaitée* : ${booking.contact.date} à ${booking.contact.time}`);
+    lines.push(``);
+    lines.push(`👤 *Nom* : ${booking.contact.name}`);
+    lines.push(`📞 *Tél.* : ${booking.contact.phone}`);
+    if (booking.contact.email) {
+      lines.push(`✉️ *Email* : ${booking.contact.email}`);
+    }
+    if (booking.contact.note) {
+      lines.push(``);
+      lines.push(`💬 *Note* : ${booking.contact.note}`);
+    }
+    lines.push(``);
+    lines.push(`Référence : ${booking.id}`);
+    return lines.join("\n");
+  };
 
   const handleSubmit = async () => {
     if (!contact.name || !contact.phone || !contact.date || !contact.time) return;
@@ -421,10 +464,11 @@ const QuoteBuilder = ({ open, onClose }) => {
       label: path === "iphone" ? quote?.label : null,
       contact,
     };
+
+    // 1. Backup Formspree en arrière-plan (au cas où le client n'envoie pas le WhatsApp)
     try {
-      // Envoi de la demande à Formspree, qui forwarde par email à ixititoure@gmail.com
-      if (FORMSPREE_ID && FORMSPREE_ID !== "xqewvpkb") {
-        await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      if (FORMSPREE_ID && FORMSPREE_ID !== "VOTRE_ID_FORMSPREE") {
+        fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({
@@ -443,15 +487,19 @@ const QuoteBuilder = ({ open, onClose }) => {
             rdv_heure: booking.contact.time,
             note: booking.contact.note || "—",
           }),
-        });
-      } else {
-        console.warn("⚠️ Formspree non configuré : la demande n'a pas été envoyée par email. Configurez FORMSPREE_ID dans App.jsx");
+        }).catch(() => { /* silent fail — WhatsApp est le canal principal */ });
       }
-    } catch (e) {
-      console.error("Erreur d'envoi:", e);
-    }
-    setSaving(false);
-    setSubmitted(booking);
+    } catch (e) { /* idem */ }
+
+    // 2. Ouvrir WhatsApp avec message pré-rempli (canal principal)
+    const message = buildWhatsAppMessage(booking);
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    // Petit délai pour s'assurer que la requête Formspree est partie
+    setTimeout(() => {
+      window.open(url, "_blank");
+      setSaving(false);
+      setSubmitted(booking);
+    }, 200);
   };
 
   if (!open) return null;
@@ -498,10 +546,10 @@ const QuoteBuilder = ({ open, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center" style={{ background: "rgba(22,20,18,0.6)" }}>
       <div className="absolute inset-0" onClick={onClose} />
-      <div ref={scrollRef} className="relative w-full md:max-w-3xl h-full md:h-auto md:max-h-92vh overflow-y-auto md:rounded-2xl card-shadow" style={{ background: COLORS.paper }}>
+      <div className="relative w-full md:max-w-3xl h-full md:max-h-modal md:rounded-2xl card-shadow flex flex-col" style={{ background: COLORS.paper }}>
 
-        {/* Header bar */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-7 py-4" style={{ background: `${COLORS.paper}F2`, borderBottom: `1px solid ${COLORS.line}`, backdropFilter: "blur(8px)" }}>
+        {/* Header bar (toujours visible en haut) */}
+        <div className="flex-shrink-0 flex items-center justify-between px-5 md:px-7 py-4" style={{ background: COLORS.paper, borderBottom: `1px solid ${COLORS.line}` }}>
           <div className="flex items-center gap-3">
             <div className="font-body text-xs uppercase tracking-wider2" style={{ color: COLORS.muted }}>
               {submitted ? "Réservation confirmée" : `Étape ${step + 1} / ${totalSteps}`}
@@ -520,17 +568,19 @@ const QuoteBuilder = ({ open, onClose }) => {
           </div>
         </div>
 
-        <div className="px-5 md:px-10 py-8 md:py-10 anim-fade-up" key={`${step}-${path}-${repair}`}>
+        {/* Zone de contenu scrollable */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          <div className="px-5 md:px-10 py-6 md:py-8 anim-fade-up" key={`${step}-${path}-${repair}`}>
 
           {/* ============= CONFIRMATION ============= */}
           {submitted && (
             <div className="text-center py-6">
-              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: COLORS.green }}>
-                <Check size={28} color="#fff" strokeWidth={2.5}/>
+              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: "#25D366" }}>
+                <WhatsAppIcon size={28} color="#fff"/>
               </div>
               <h3 className="font-display font-bold text-3xl md:text-4xl mb-3" style={{ color: COLORS.ink }}>Merci {submitted.contact.name.split(" ")[0]} !</h3>
               <p className="font-body text-base mb-8 max-w-md mx-auto" style={{ color: COLORS.ink2 }}>
-                Votre demande de rendez-vous a bien été enregistrée. Nous vous recontactons sous 24h pour confirmer le créneau.
+                WhatsApp s'est ouvert dans un nouvel onglet. <strong>Cliquez sur « Envoyer »</strong> pour transmettre votre demande — nous vous recontactons rapidement pour confirmer.
               </p>
               <div className="max-w-md mx-auto rounded-xl p-6 text-left" style={{ background: COLORS.cream, border: `1px solid ${COLORS.line}` }}>
                 <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
@@ -766,25 +816,29 @@ const QuoteBuilder = ({ open, onClose }) => {
             />
           )}
 
-          {/* ============= NAVIGATION ============= */}
-          {!submitted && (
-            <div className="mt-10 flex items-center justify-between">
-              <button onClick={goBack} disabled={step === 0} className="flex items-center gap-1.5 font-body text-sm disabled:opacity-30" style={{ color: COLORS.ink }}>
-                <ChevronLeft size={16}/> Retour
-              </button>
-              {(path === "iphone" && step === 4) || (path === "other" && step === 3) ? (
-                <Button onClick={handleSubmit} disabled={!canContinue || saving} icon={saving ? Hourglass : Check}>
-                  {saving ? "Envoi en cours…" : "Confirmer la demande"}
-                </Button>
-              ) : (
-                <Button onClick={goNext} disabled={!canContinue} icon={ChevronRight}>
-                  Continuer
-                </Button>
-              )}
-            </div>
-          )}
+          {/* ============= NAVIGATION (déplacée en pied de modale) ============= */}
 
+          </div>
         </div>
+
+        {/* Footer fixe avec les boutons d'action — toujours visible */}
+        {!submitted && (
+          <div className="flex-shrink-0 flex items-center justify-between px-5 md:px-10 py-4" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, boxShadow: "0 -4px 12px -8px rgba(0,0,0,0.1)" }}>
+            <button onClick={goBack} disabled={step === 0} className="flex items-center gap-1.5 font-body text-sm disabled:opacity-30" style={{ color: COLORS.ink }}>
+              <ChevronLeft size={16}/> Retour
+            </button>
+            {(path === "iphone" && step === 4) || (path === "other" && step === 3) ? (
+              <Button onClick={handleSubmit} disabled={!canContinue || saving} variant="whatsapp" icon={saving ? Hourglass : WhatsAppIcon}>
+                {saving ? "Ouverture WhatsApp…" : "Envoyer sur WhatsApp"}
+              </Button>
+            ) : (
+              <Button onClick={goNext} disabled={!canContinue} icon={ChevronRight}>
+                Continuer
+              </Button>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -825,7 +879,14 @@ const ContactForm = ({ quoteSummary, unavailable, contact, setContact }) => {
         </div>
       )}
 
-      {quoteSummary && <div className="mb-7">{quoteSummary}</div>}
+      {quoteSummary && <div className="mb-5">{quoteSummary}</div>}
+
+      <div className="mb-7 p-4 rounded-lg flex gap-3 items-start" style={{ background: "#DCFCE7", border: `1px solid #86EFAC` }}>
+        <WhatsAppIcon size={20} color="#15803D"/>
+        <div className="font-body text-sm" style={{ color: "#14532D" }}>
+          <strong>Réservation par WhatsApp :</strong> en validant, votre récapitulatif s'ouvre dans WhatsApp pour finaliser en un clic.
+        </div>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <Field label="Nom complet *" icon={User}>
@@ -1034,6 +1095,7 @@ const Contact = ({ onStartQuote }) => {
             <div className="space-y-4 font-body text-sm">
               <div className="flex items-start gap-3"><MapPin size={18} className="flex-shrink-0 mt-0.5" style={{ color: ACCENT }}/><div><div className="font-medium">Adresse</div><div style={{ color: SOFT }}>Rue Charles de Gaulle<br/>42000 Saint-Étienne</div></div></div>
               <div className="flex items-start gap-3"><Phone size={18} className="flex-shrink-0 mt-0.5" style={{ color: ACCENT }}/><div><div className="font-medium">Téléphone</div><a href="tel:+33745376436" className="hover:underline" style={{ color: SOFT }}>07 45 37 64 36</a></div></div>
+              <div className="flex items-start gap-3"><span style={{ color: "#25D366", flexShrink: 0, marginTop: "2px" }}><WhatsAppIcon size={18}/></span><div><div className="font-medium">WhatsApp</div><a href="https://wa.me/33745376436" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: SOFT }}>Discutez avec nous direct</a></div></div>
               <div className="flex items-start gap-3"><Ghost size={18} className="flex-shrink-0 mt-0.5" style={{ color: ACCENT }}/><div><div className="font-medium">Snapchat</div><div style={{ color: SOFT }}>ixititoure</div></div></div>
               <div className="flex items-start gap-3"><Clock size={18} className="flex-shrink-0 mt-0.5" style={{ color: ACCENT }}/><div><div className="font-medium">Horaires</div><div style={{ color: SOFT }}>Ouvert tous les jours</div></div></div>
               <div className="flex items-start gap-3"><Mail size={18} className="flex-shrink-0 mt-0.5" style={{ color: ACCENT }}/><div><div className="font-medium">Email</div><a href="mailto:ixititoure@gmail.com" className="hover:underline break-all" style={{ color: SOFT }}>ixititoure@gmail.com</a></div></div>
@@ -1228,7 +1290,8 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
   const [submitted, setSubmitted] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Reuse Formspree config from QuoteBuilder
+  // Numéro WhatsApp (modifiez ici si besoin)
+  const WHATSAPP_NUMBER = "33745376436";
   const FORMSPREE_ID = "VOTRE_ID_FORMSPREE";
 
   useEffect(() => {
@@ -1237,6 +1300,27 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
       setSubmitted(null);
     }
   }, [open]);
+
+  const buildOrderMessage = (order) => {
+    const lines = [
+      `Bonjour ! 🛒 Je souhaite *passer une commande* :`,
+      ``,
+      `📦 *Catégorie* : ${order.category}`,
+      `🎯 *Produit* : ${order.product}`,
+      `💰 *Montant* : ${order.amount}`,
+      ``,
+      `👤 *Nom* : ${order.contact.name}`,
+      `📞 *Tél.* : ${order.contact.phone}`,
+      `✉️ *Email* : ${order.contact.email}`,
+    ];
+    if (order.contact.note) {
+      lines.push(``);
+      lines.push(`💬 *Précisions* : ${order.contact.note}`);
+    }
+    lines.push(``);
+    lines.push(`Référence : ${order.id}`);
+    return lines.join("\n");
+  };
 
   const handleSubmit = async () => {
     if (!contact.name || !contact.email || !contact.phone) return;
@@ -1247,9 +1331,11 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
       ...prefill,
       contact,
     };
+
+    // Backup Formspree silencieux
     try {
       if (FORMSPREE_ID && FORMSPREE_ID !== "VOTRE_ID_FORMSPREE") {
-        await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({
@@ -1265,15 +1351,18 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
             telephone: order.contact.phone,
             note: order.contact.note || "—",
           }),
-        });
-      } else {
-        console.warn("⚠️ Formspree non configuré pour les commandes digitales");
+        }).catch(() => {});
       }
-    } catch (e) {
-      console.error("Erreur d'envoi:", e);
-    }
-    setSaving(false);
-    setSubmitted(order);
+    } catch (e) {}
+
+    // Ouverture WhatsApp
+    const message = buildOrderMessage(order);
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    setTimeout(() => {
+      window.open(url, "_blank");
+      setSaving(false);
+      setSubmitted(order);
+    }, 200);
   };
 
   if (!open) return null;
@@ -1283,15 +1372,19 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center" style={{ background: "rgba(22,20,18,0.6)" }}>
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="relative w-full md:max-w-xl h-full md:h-auto overflow-y-auto md:rounded-2xl card-shadow" style={{ background: COLORS.paper }}>
-        <div className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-7 py-4" style={{ background: `${COLORS.paper}F2`, borderBottom: `1px solid ${COLORS.line}`, backdropFilter: "blur(8px)" }}>
+      <div className="relative w-full md:max-w-xl h-full md:max-h-modal-sm md:rounded-2xl card-shadow flex flex-col" style={{ background: COLORS.paper }}>
+
+        {/* Header fixe */}
+        <div className="flex-shrink-0 flex items-center justify-between px-5 md:px-7 py-4" style={{ background: COLORS.paper, borderBottom: `1px solid ${COLORS.line}` }}>
           <div className="font-body text-xs uppercase tracking-wider2" style={{ color: COLORS.muted }}>
             {submitted ? "Commande enregistrée" : "Commander"}
           </div>
           <button onClick={onClose} className="p-2 rounded-md hover:bg-black/5" style={{ color: COLORS.ink }}><X size={18}/></button>
         </div>
 
-        <div className="px-5 md:px-10 py-8 md:py-10 anim-fade-up">
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-5 md:px-10 py-6 md:py-8 anim-fade-up">
           {!submitted ? (
             <>
               <h3 className="font-display font-bold mb-2" style={{ color: COLORS.ink, fontSize: "clamp(26px, 3.5vw, 36px)", lineHeight: 1.1 }}>
@@ -1347,21 +1440,15 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
                   <strong>Paiement à la confirmation :</strong> nous vous recontactons sous 1h ouvrée pour validation. Le code et la facture vous seront envoyés par email après réception du paiement.
                 </div>
               </div>
-
-              <div className="mt-8 flex items-center justify-end">
-                <Button onClick={handleSubmit} disabled={!canSubmit || saving} icon={saving ? Hourglass : Check}>
-                  {saving ? "Envoi en cours…" : "Envoyer la commande"}
-                </Button>
-              </div>
             </>
           ) : (
             <div className="text-center py-6">
-              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: COLORS.green }}>
-                <Check size={28} color="#fff" strokeWidth={2.5}/>
+              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-6" style={{ background: "#25D366" }}>
+                <WhatsAppIcon size={28} color="#fff"/>
               </div>
               <h3 className="font-display font-bold text-3xl md:text-4xl mb-3" style={{ color: COLORS.ink }}>Merci {submitted.contact.name.split(" ")[0]} !</h3>
               <p className="font-body text-base mb-8 max-w-md mx-auto" style={{ color: COLORS.ink2 }}>
-                Votre commande est bien enregistrée. Nous vous recontactons sous 1h ouvrée pour la confirmation et le paiement.
+                WhatsApp s'est ouvert dans un nouvel onglet. <strong>Cliquez sur « Envoyer »</strong> pour transmettre votre commande — nous vous recontactons rapidement.
               </p>
               <div className="max-w-md mx-auto rounded-xl p-6 text-left" style={{ background: COLORS.cream, border: `1px solid ${COLORS.line}` }}>
                 <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: `1px solid ${COLORS.line}` }}>
@@ -1382,7 +1469,18 @@ const DigitalOrderModal = ({ open, onClose, prefill }) => {
               </div>
             </div>
           )}
+          </div>
         </div>
+
+        {/* Footer fixe avec le bouton WhatsApp — toujours visible */}
+        {!submitted && (
+          <div className="flex-shrink-0 flex items-center justify-end px-5 md:px-10 py-4" style={{ background: COLORS.paper, borderTop: `1px solid ${COLORS.line}`, boxShadow: "0 -4px 12px -8px rgba(0,0,0,0.1)" }}>
+            <Button onClick={handleSubmit} disabled={!canSubmit || saving} variant="whatsapp" icon={saving ? Hourglass : WhatsAppIcon}>
+              {saving ? "Ouverture WhatsApp…" : "Commander sur WhatsApp"}
+            </Button>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -1416,6 +1514,61 @@ export default function App() {
       <Contact onStartQuote={() => setQuoteOpen(true)}/>
       <QuoteBuilder open={quoteOpen} onClose={() => setQuoteOpen(false)}/>
       <DigitalOrderModal open={orderOpen} onClose={() => setOrderOpen(false)} prefill={orderPrefill || {}}/>
+      <WhatsAppFloatingButton/>
     </div>
   );
 }
+
+// ====================================================================
+// FLOATING WHATSAPP BUTTON — visible sur toutes les pages
+// ====================================================================
+const WhatsAppFloatingButton = () => {
+  const WHATSAPP_NUMBER = "33745376436"; // 07 45 37 64 36
+  const message = "Bonjour ! 👋 J'ai une question concernant la réparation de mon téléphone.";
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Discuter sur WhatsApp"
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        right: "24px",
+        width: "60px",
+        height: "60px",
+        borderRadius: "50%",
+        background: "#25D366",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 12px rgba(37,211,102,0.4), 0 8px 24px -4px rgba(0,0,0,0.2)",
+        zIndex: 30,
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+    >
+      <WhatsAppIcon size={30} color="#fff"/>
+      <span style={{
+        position: "absolute",
+        top: "-2px",
+        right: "-2px",
+        width: "14px",
+        height: "14px",
+        borderRadius: "50%",
+        background: "#22C55E",
+        border: "2px solid #fff",
+        animation: "pulse 2s infinite",
+      }}/>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.3); opacity: 0.7; }
+        }
+      `}</style>
+    </a>
+  );
+};
